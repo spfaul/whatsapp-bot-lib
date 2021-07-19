@@ -1,6 +1,7 @@
 main.py
-mySession/
+IGNORE.py
 
+mySession/
 driver/chromedriver.exe
 
 __pycache__/
