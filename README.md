@@ -1,4 +1,4 @@
-# Whatsapp-Bot-Lib
+# Whatsapp Bot Lib
 
 ------------
 
