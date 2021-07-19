@@ -9,3 +9,5 @@ A library inspired and built on [Simple-Yet-Hackable-WhatsApp-api](https://githu
 ## Installation
 ------------
 ` git clone https://github.com/t0a5ted/whatsapp-bot-lib.git `
+Copy `wa` folder into your Project Directiory
+
