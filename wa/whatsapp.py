@@ -49,9 +49,12 @@ class WhatsApp:
 
         time.sleep(wait)
 
-        # CSS SELECTORS 
+        # element locators
         self.search_selector = '#side > div.uwk68 > div > label > div > div._13NKt.copyable-text.selectable-text'
-        self.SendBox_XPATH = "/html/body/div/div[1]/div[1]/div[4]/div[1]/footer/div[1]/div[2]/div/div[1]/div/div[2]")
+        self.SendBox_XPATH = "/html/body/div/div[1]/div[1]/div[4]/div[1]/footer/div[1]/div[2]/div/div[1]/div/div[2]"
+        self.ParticipantCount_SELECTOR = "#app > div._1ADa8._3Nsgw.app-wrapper-web.font-fix.os-win > div._1XkO3.three > div._3ArsE > div.ldL67._1bLj8 > span > div._3bvta > span > div.nBIOd._2T-Z0.tm2tP.copyable-area > div > section > div:nth-child(5) > div._10vh8 > div > div > div._25m4C._3weqn > span"
+        self.Chat_Info_SELECTOR = "#main > header > div._2YnE3"
+        self.Scrollbar_SELECTOR = "#app > div._1ADa8._3Nsgw.app-wrapper-web.font-fix.os-win > div._1XkO3.three > div._3ArsE > div.ldL67._1bLj8 > span > div._3bvta > span > div.nBIOd._2T-Z0.tm2tP.copyable-area > div"
 
     # This method is used to send the message to the individual person or a group
     # will return true if the message has been sent, false else
@@ -76,7 +79,7 @@ class WhatsApp:
             return False
 
     # This method will count the no of participants for the group name provided
-    def participants_count_for_group(self, group_name):
+    def get_participants_count(self, group_name):
         search = self.browser.find_element_by_css_selector(self.search_selector)
         search.send_keys(group_name+Keys.ENTER)
 
@@ -87,7 +90,7 @@ class WhatsApp:
         # it is handled safely
         try:
             click_menu = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "#main > header > div._2uaUb > div.z4t2k > div > span"))) #._19vo_ > span:nth-child(1)
+                (By.CSS_SELECTOR, self.Chat_Info_SELECTOR)))
             click_menu.click()
         except TimeoutException:
             raise TimeoutError("Your request has been timed out! Try overriding timeout!")
@@ -95,35 +98,36 @@ class WhatsApp:
             return "None"
         except Exception as e:
             return "None"
-            
+
         current_time = dt.datetime.now()
-        participants_selector = "#app > div > div > div.Akuo4 > div._1Flk2._3xysY > span > div > span > div > div > div._2zCWg > div:nth-child(5) > div.-ZdaK > div > div > div.kia3R._2wzbH > span"
+        
         while True:
             try:
-                participants_count = self.browser.find_element_by_css_selector(participants_selector).text
+                participants_count = self.browser.find_element_by_css_selector(self.ParticipantCount_SELECTOR).text
                 if "participants" in participants_count:
-                    participants_count = participants_count.replace(' participants', '')
-                    participants_count = int(participants_count)
+                    participants_count = int(participants_count.replace(' participants', ''))
+                    ActionChains(self.browser).send_keys(Keys.ESCAPE).perform()
                     return participants_count
             except Exception as e:
-                pass
-            new_time = dt.datetime.now()
-            elapsed_time = (new_time - current_time).seconds
+                ActionChains(self.browser).send_keys(Keys.ESCAPE).perform()
+
+            elapsed_time = (dt.datetime.now() - current_time).seconds
             if elapsed_time > self.timeout:
                 return "NONE"
 
     # This method is used to get all the participants
     def get_group_participants(self, group_name):
-        count = self.participants_count_for_group(group_name)
+        count = self.get_participants_count(group_name)
         search = self.browser.find_element_by_css_selector(self.search_selector)
-        search.send_keys(group_name+Keys.ENTER)  # we will send the name to the input key box
+        search.send_keys(group_name+Keys.ENTER)
+        # we will send the name to the input key box
         # some say this two try catch below can be grouped into one
         # but I have some version specific issues with chrome [Other element would receive a click]
         # in older versions. So I have handled it spereately since it clicks and throws the exception
         # it is handled safely
         try:
             click_menu = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "#main > header > div._2uaUb > div.z4t2k > div > span")))
+                (By.CSS_SELECTOR, self.Chat_Info_SELECTOR)))
             click_menu.click()
         except TimeoutException:
             raise TimeoutError("Your request has been timed out! Try overriding timeout!")
@@ -133,18 +137,18 @@ class WhatsApp:
             return "None"
 
         participants = []
-        scrollbar = self.browser.find_element_by_css_selector("#app > div > div > div.Akuo4 > div._1Flk2._3xysY > span > div > span > div > div")#app > div > div > div.MZIyP > div._3q4NP._2yeJ5 > span > div > span > div > div
+        scrollbar = self.browser.find_element_by_css_selector(self.Scrollbar_SELECTOR)
         for v in range(1, 3):
-            self.browser.execute_script('arguments[0].scrollTop = '+str(v*300), scrollbar)
+            self.browser.execute_script('arguments[0].scrollTop = ' + str(v*400), scrollbar)
             time.sleep(0.10)
             elements = self.browser.find_elements_by_tag_name("span")
             for element in elements:
                 try:
                     html = element.get_attribute('innerHTML')
                     soup = BeautifulSoup(html, "html.parser")
-                    for i in soup.find_all("span", class_="_35k-1 _1adfa _3-8er"):
+                    for i in soup.find_all("span", class_="FqYAR"):
                         if len(participants) != int(count):
-                            if i.text not in participants:
+                            if i.text not in participants and i.text != 'You':
                                 participants.append(i.text)
                         else:
                             return participants
@@ -337,8 +341,23 @@ class WhatsApp:
 
     def get_all_message_blind(self):
         msgs = self.browser.find_elements_by_css_selector("span.i0jNr.selectable-text.copyable-text")
-        msgs_info = self.browser.find_elements_by_class_name("_2jGOb")
-        msgs_info = [msg.get_attribute('data-pre-plain-text').encode('utf-8') for msg in msgs_info]
+        # msgs_info = self.browser.find_elements_by_class_name("_2jGOb")
+        
+        # for idx, info in enumerate(msgs_info.copy()):
+        #     info = info.get_attribute('data-pre-plain-text').encode('utf-8').decode('ascii', errors='ignore')
+        #     info = info.split(']')[1][1:-2] # get contact name from msg info
+        #     msgs_info[idx] = info
+
+        msgs_info = self.browser.find_elements_by_class_name("_22Msk")
+        for idx, div in enumerate(msgs_info.copy()):
+            try:
+                info = div.find_element_by_class_name('_2jGOb').get_attribute('data-pre-plain-text')  # get div with msg info if the msg is sent by someone other than the bot
+            except NoSuchElementException:
+                info = div.find_element_by_tag_name('div').get_attribute('data-pre-plain-text') 
+            info = info.encode('utf-8').decode('ascii', errors='ignore')
+            contact_name = info.split(']')[1][1:-2] # get contact name from msg info
+            msgs_info[idx] = contact_name
+
         msg = [message.text for message in msgs]
 
         return msg, msgs_info
