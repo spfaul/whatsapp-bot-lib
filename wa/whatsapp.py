@@ -11,7 +11,6 @@ import os
 import datetime as dt
 from urllib.parse import urlencode
 
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -22,7 +21,6 @@ from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
-
 
 try:
     from bs4 import BeautifulSoup
@@ -298,7 +296,6 @@ class WhatsApp:
         confirm_exit = self.browser.find_element_by_css_selector("div._1WZqU:nth-child(2)")
         confirm_exit.click()
 
-
     # Get the driver object
     def get_driver(self):
         return self.browser
@@ -321,7 +318,6 @@ class WhatsApp:
 
     def get_all_message_blind(self):
         msgs = self.browser.find_elements_by_css_selector(self.Msg_SELECTOR)
-
         msgs_info = self.browser.find_elements_by_class_name(self.MsgInfoOuterDiv_CLASS)
         for idx, div in enumerate(msgs_info.copy()):
             try:
