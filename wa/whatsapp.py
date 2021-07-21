@@ -7,6 +7,7 @@
 # ============================================================
 
 import time
+import os
 import datetime as dt
 from urllib.parse import urlencode
 
@@ -158,30 +159,6 @@ class WhatsApp:
 
                 except Exception as e:
                     pass
-
-    # to get the last seen of the person
-    def get_last_seen(self, name, timeout=10):
-        search = self.browser.find_element_by_css_selector(self.search_selector)
-        search.send_keys(name+Keys.ENTER)  # we will send the name to the input key box
-        last_seen_css_selector = "._315-i"
-        start_time = dt.datetime.now()
-        try:
-            WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-                (By.CSS_SELECTOR, last_seen_css_selector)))
-            while True:
-                last_seen = self.browser.find_element_by_css_selector(last_seen_css_selector).text
-                if last_seen and "click here" not in last_seen:
-                    return last_seen
-                end_time = dt.datetime.now()
-                elapsed_time = (end_time-start_time).seconds
-                if elapsed_time > 10:
-                    return "None"
-        except TimeoutException:
-            raise TimeoutError("Your request has been timed out! Try overriding timeout!")
-        except NoSuchElementException:
-            return "None"
-        except Exception:
-            return "None"
 
 
     # This method does not care about anything, it sends message to the currently active chat
@@ -368,5 +345,6 @@ class WhatsApp:
 
     # This method is used to quit the browser
     def quit_browser(self):
+        os.system('taskkill /F /IM chromedriver.exe')
         self.browser.quit()
 
