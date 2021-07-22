@@ -1,9 +1,0 @@
-main.py
-IGNORE.py
-
-mySession/
-driver/chromedriver.exe
-
-tests/
-
-__pycache__/
