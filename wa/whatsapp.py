@@ -41,6 +41,8 @@ class WhatsApp:
             self.browser = webdriver.Chrome(pathToDriver, options=chrome_options)  # we are using chrome as our webbrowser
         else:
             self.browser = webdriver.Chrome(pathToDriver)
+
+        self.browser.get("https://web.whatsapp.com/")
         self.browser.get("https://web.whatsapp.com/")
 
         time.sleep(wait)
@@ -62,7 +64,7 @@ class WhatsApp:
         try:
             _ = self.browser.window_handles
             return True
-        except WebDriverException:
+        except:
             return False
 
 
@@ -260,26 +262,12 @@ class WhatsApp:
         self.browser.find_element_by_xpath(clear_xpath).click()
 
 
-    def join_group(self, invite_link):
-        self.browser.get(invite_link)
-        try:
-            Alert(self.browser).accept()
-        except:
-            print("No alert Found")
-        join_chat = self.browser.find_element_by_css_selector("#action-button")
-        join_chat.click()
-        WebDriverWait(self.browser, self.timeout).until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/span[3]/div/div/div/div/div/div/div[2]/div[2]')))
-        join_group = self.browser.find_element_by_xpath('//*[@id="app"]/div/span[3]/div/div/div/div/div/div/div[2]/div[2]')
-        join_group.click()
-
-
     # This method is used to get an invite link for a particular group
     def get_invite_link_for_group(self, groupname):
-        search = self.browser.find_element_by_css_selector("._3FRCZ")
+        search = self.browser.find_element_by_css_selector(self.search_selector)
         search.send_keys(groupname+Keys.ENTER)
         self.browser.find_element_by_css_selector("#main > header > div._5SiUq > div._16vzP > div > span").click()
         try:
-            #time.sleep(3)
             WebDriverWait(self.browser, self.timeout).until(EC.presence_of_element_located(
                     (By.CSS_SELECTOR, "#app > div > div > div.MZIyP > div._3q4NP._2yeJ5 > span > div > span > div > div > div > div:nth-child(5) > div:nth-child(3) > div._3j7s9 > div > div")))
             invite_link = self.browser.find_element_by_css_selector("#app > div > div > div.MZIyP > div._3q4NP._2yeJ5 > span > div > span > div > div > div > div:nth-child(5) > div:nth-child(3) > div._3j7s9 > div > div")

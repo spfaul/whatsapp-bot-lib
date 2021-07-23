@@ -12,3 +12,7 @@ A library inspired and built on [Simple-Yet-Hackable-WhatsApp-api](https://githu
 
 Copy `wa` folder into your Project Directiory
 
+## Usage
+------------
+See example files
+
