@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException, ElementNotVisibleException
+from selenium.common.exceptions import NoSuchElementException, ElementNotVisibleException, WebDriverException
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
@@ -32,8 +32,6 @@ class WhatsApp:
     """
     This class is used to interact with your whatsapp [UNOFFICIAL API]
     """
-    emoji = {}  # This dict will contain all emojies needed for chatting
-    browser = None
     timeout = 10  # The timeout is set for about ten seconds
 
     def __init__(self, wait, pathToDriver, screenshot=None, session=None):
@@ -44,7 +42,6 @@ class WhatsApp:
         else:
             self.browser = webdriver.Chrome(pathToDriver)
         self.browser.get("https://web.whatsapp.com/")
-
 
         time.sleep(wait)
 
@@ -57,6 +54,18 @@ class WhatsApp:
         self.Msg_SELECTOR = "span.i0jNr.selectable-text.copyable-text"
         self.MsgInfoOuterDiv_CLASS = "_22Msk"
         self.UserMsgInfo_CLASS = "_2jGOb"
+
+    def isWindowOpen(self):
+        """
+        Check if the selenium window is open
+        """
+        try:
+            _ = self.browser.window_handles
+            return True
+        except WebDriverException:
+            return False
+
+
 
     # This method is used to send the message to the individual person or a group
     # will return true if the message has been sent, false else
@@ -317,22 +326,26 @@ class WhatsApp:
         return messages
 
     def get_all_message_blind(self):
-        msgs = self.browser.find_elements_by_css_selector(self.Msg_SELECTOR)
-        msgs_info = self.browser.find_elements_by_class_name(self.MsgInfoOuterDiv_CLASS)
-        for idx, div in enumerate(msgs_info.copy()):
-            try:
-                info = div.find_element_by_class_name(self.UserMsgInfo_CLASS).get_attribute('data-pre-plain-text')  # get div with msg info if the msg is sent by someone other than the bot
-            except NoSuchElementException:
-                info = div.find_element_by_tag_name('div').get_attribute('data-pre-plain-text')
+        try:
+            msgs = self.browser.find_elements_by_css_selector(self.Msg_SELECTOR)
+            msgs_info = self.browser.find_elements_by_class_name(self.MsgInfoOuterDiv_CLASS)
+            for idx, div in enumerate(msgs_info.copy()):
+                try:
+                    info = div.find_element_by_class_name(self.UserMsgInfo_CLASS).get_attribute('data-pre-plain-text')  # get div with msg info if the msg is sent by someone other than the bot
+                except NoSuchElementException:
+                    info = div.find_element_by_tag_name('div').get_attribute('data-pre-plain-text')
 
-            info = info.encode('utf-8').decode('ascii', errors='ignore') # remove unwanted unicode characters that cant be 
-                                                                         # converted to ascii 
-            contact_name = info.split(']')[1][1:-2] # get contact name from msg info
-            msgs_info[idx] = contact_name
+                info = info.encode('utf-8').decode('ascii', errors='ignore') # remove unwanted unicode characters that cant be 
+                                                                             # converted to ascii 
+                contact_name = info.split(']')[1][1:-2] # get contact name from msg info
+                msgs_info[idx] = contact_name
 
-        msg = [message.text for message in msgs]
+            msg = [message.text for message in msgs]
 
-        return msg, msgs_info
+            return msg, msgs_info
+
+        except:
+            return None, None
 
     def goto_contact(self, contact):
         search = self.browser.find_element_by_css_selector(self.search_selector)
@@ -341,6 +354,5 @@ class WhatsApp:
 
     # This method is used to quit the browser
     def quit_browser(self):
-        os.system('taskkill /F /IM chromedriver.exe')
         self.browser.quit()
 

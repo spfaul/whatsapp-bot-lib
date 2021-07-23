@@ -20,7 +20,7 @@ class CommandHandler:
                 args.pop(idx)
 
         if not (targetComm[len(self.commPrefix):] in self.commMap.keys()):
-            raise BaseException('Command does not exist')
+            return
         if not targetComm.startswith(self.commPrefix):
             return
 
